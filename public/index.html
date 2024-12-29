@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotiCloud</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>🎵 SpotiCloud Controller 🎵</h1>
+        <p>Seamlessly switch between Spotify and SoundCloud</p>
+    </header>
+
+    <main>
+        <div class="controls-container">
+            <div class="control-section">
+                <h2>Spotify Controls</h2>
+                <button onclick="controlSpotify('play')">▶ Play</button>
+                <button onclick="controlSpotify('pause')">⏸ Pause</button>
+                <button onclick="controlSpotify('skip')">⏭ Next</button>
+                <button onclick="controlSpotify('prev')">⏮ Previous</button>
+                <button id="spotifyShuffleButton" class="shuffle-button" onclick="toggleSpotifyShuffle()">🔀 Shuffle</button>
+            </div>
+            <div class="control-section">
+                <h2>SoundCloud Controls</h2>
+                <button onclick="initSoundCloud()">🔧 Initialize</button>
+                <button onclick="controlSoundCloud('play')">▶ Play</button>
+                <button onclick="controlSoundCloud('pause')">⏸ Pause</button>
+                <button onclick="controlSoundCloud('skip')">⏭ Next</button>
+                <button onclick="controlSoundCloud('prev')">⏮ Previous</button>
+                <button id="soundcloudShuffleButton" class="shuffle-button" onclick="toggleSoundCloudShuffle()">🔀 Shuffle</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>🎉 Built with <span class="heart">❤️</span> by Jnk 🤠</p>
+    </footer>
+    
+
+    <script>
+        let isSpotifyShuffleActive = false;
+        let isSoundCloudShuffleActive = false;
+
+        async function controlSpotify(action) {
+            try {
+                const endpoint = `/spotify/${action}`;
+                await fetch(endpoint, { method: 'POST' });
+            } catch (error) {
+                console.error('Error controlling Spotify:', error);
+            }
+        }
+
+        async function controlSoundCloud(action) {
+            try {
+                const endpoint = `/soundcloud/${action}`;
+                await fetch(endpoint, { method: 'POST' });
+            } catch (error) {
+                console.error('Error controlling SoundCloud:', error);
+            }
+        }
+
+        async function initSoundCloud() {
+            try {
+                const url = prompt('Enter SoundCloud playlist URL:');
+                await fetch('/soundcloud/init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+            } catch (error) {
+                console.error('Error initializing SoundCloud:', error);
+            }
+        }
+
+        async function toggleSpotifyShuffle() {
+            try {
+                const shuffleButton = document.getElementById('spotifyShuffleButton');
+                shuffleButton.classList.add('button-pulse');
+                
+                const response = await fetch('/spotify/shuffle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state: !isSpotifyShuffleActive })
+                });
+                
+                const data = await response.json();
+                isSpotifyShuffleActive = data.shuffleState;
+                
+                shuffleButton.classList.toggle('active', isSpotifyShuffleActive);
+
+                setTimeout(() => {
+                    shuffleButton.classList.remove('button-pulse');
+                }, 300);
+            } catch (error) {
+                console.error('Error toggling shuffle for Spotify:', error);
+            }
+        }
+
+        async function toggleSoundCloudShuffle() {
+            try {
+                const shuffleButton = document.getElementById('soundcloudShuffleButton');
+                shuffleButton.classList.add('button-pulse');
+                
+                const response = await fetch('/soundcloud/shuffle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state: !isSoundCloudShuffleActive })
+                });
+                
+                const data = await response.json();
+                isSoundCloudShuffleActive = data.shuffleState;
+                
+
+                shuffleButton.classList.toggle('active', isSoundCloudShuffleActive);
+                
+                setTimeout(() => {
+                    shuffleButton.classList.remove('button-pulse');
+                }, 300);
+            } catch (error) {
+                console.error('Error toggling shuffle for SoundCloud:', error);
+            }
+        }
+    </script>
+</body>
+</html>
