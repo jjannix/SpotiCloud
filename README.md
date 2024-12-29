@@ -27,6 +27,7 @@ SpotiCloud is a project that integrates Spotify with SoundCloud, allowing users 
     - Create a `config.json` file int the project root.
     - Add the following values
 ```json
+{
       clientID: "YOUR_CLIENT_ID"
       clientSecret: "YOUR_CLIENT_SECRET"
       refreshToken: "YOUR_REFRESH_TOKEN"
@@ -34,6 +35,7 @@ SpotiCloud is a project that integrates Spotify with SoundCloud, allowing users 
       updateTimeMS:	3300000
 
       SOUNDCLOUD_URL: "YOUR_SOUNDCLOUD_PLAYLIST_URL"
+}
 ```
 
 ## Usage
