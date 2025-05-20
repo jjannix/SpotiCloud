@@ -1,6 +1,6 @@
 const express = require('express');
-const { resumeSpotify, pauseSpotify, skipSpotify, prevSpotify, toggleShuffle: toggleSpotifyShuffle } = require('./modules/spotify');
-const { togglePlayback, skipTrack, previousTrack, toggleShuffle: toggleSoundCloudShuffle } = require('./modules/soundcloud');
+const { resumeSpotify, pauseSpotify, skipSpotify, prevSpotify, toggleShuffle: toggleSpotifyShuffle, getCurrentTrack: getSpotifyTrack } = require('./modules/spotify');
+const { togglePlayback, skipTrack, previousTrack, toggleShuffle: toggleSoundCloudShuffle, getCurrentTrack: getSoundCloudTrack } = require('./modules/soundcloud');
 const app = express();
 
 app.use(express.json());
@@ -113,12 +113,42 @@ app.post('/soundcloud/prev', async (req, res) => {
     }
 });
 
-
 app.post('/soundcloud/shuffle', async (req, res) => {
     try {
         const state = req.body.state;
         await toggleSoundCloudShuffle();
         res.json({ shuffleState: state });
+        
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
+});
+
+app.post('/soundcloud/refresh', async (req, res) => {
+    try {
+        await require('./modules/soundcloud').refreshPage();
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
+});
+
+app.get('/spotify/current-track', async (req, res) => {
+    try {
+        const trackInfo = await getSpotifyTrack();
+        res.json(trackInfo);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
+});
+
+app.get('/soundcloud/current-track', async (req, res) => {
+    try {
+        const trackInfo = await getSoundCloudTrack();
+        res.json(trackInfo);
     } catch (err) {
         console.error(err);
         res.sendStatus(500);

@@ -193,6 +193,38 @@ const init = async () => {
     }
 };
 
+const getCurrentTrack = async () => {
+    console.log("Getting current track information...");
+    try {
+        const access_token = getMainToken();
+        if (!access_token) {
+            throw new Error("Spotify token unavailable");
+        }
+
+        const response = await axios({
+            method: 'get',
+            url: 'https://api.spotify.com/v1/me/player/currently-playing',
+            headers: {
+                'Authorization': `Bearer ${access_token}`
+            }
+        });
+
+        if (response.data) {
+            const track = response.data.item;
+            return {
+                name: track.name,
+                artist: track.artists.map(artist => artist.name).join(', '),
+                album: track.album.name,
+                coverUrl: track.album.images[0]?.url,
+                isPlaying: response.data.is_playing
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error("Error getting current track:", error);
+        throw error;
+    }
+};
 
 setTimeout(() => {
     console.log("Starting main execution...");
@@ -206,4 +238,5 @@ module.exports = {
     prevSpotify,
     toggleShuffle,
     init,
+    getCurrentTrack
 };

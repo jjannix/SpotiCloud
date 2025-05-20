@@ -10,6 +10,7 @@
     <header>
         <h1>🎵 SpotiCloud Controller 🎵</h1>
         <p>Seamlessly switch between Spotify and SoundCloud</p>
+        <a href="now-playing.html" class="now-playing-link">🎧 View Now Playing</a>
     </header>
 
     <main>
@@ -30,6 +31,7 @@
                 <button onclick="controlSoundCloud('skip')">⏭ Next</button>
                 <button onclick="controlSoundCloud('prev')">⏮ Previous</button>
                 <button id="soundcloudShuffleButton" class="shuffle-button" onclick="toggleSoundCloudShuffle()">🔀 Shuffle</button>
+                <button onclick="refreshSoundCloud()" class="refresh-button">🔄 Refresh</button>
             </div>
         </div>
     </main>
@@ -120,6 +122,23 @@
                 }, 300);
             } catch (error) {
                 console.error('Error toggling shuffle for SoundCloud:', error);
+            }
+        }
+
+        async function refreshSoundCloud() {
+            try {
+                const refreshButton = document.querySelector('.refresh-button');
+                refreshButton.classList.add('button-pulse');
+                
+                await fetch('/soundcloud/refresh', {
+                    method: 'POST'
+                });
+                
+                setTimeout(() => {
+                    refreshButton.classList.remove('button-pulse');
+                }, 300);
+            } catch (error) {
+                console.error('Error refreshing SoundCloud:', error);
             }
         }
     </script>

@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const SOUNDLOUD_URL = require('../config.json');
+const { timeout } = require('puppeteer');
 
 let browser;
 let page;
@@ -89,10 +90,71 @@ const toggleShuffle = async () => {
     }
 };
 
+const toggleLoop = async() => {
+    try {
+        const loopButtonSelector = 'button.loopControl';
+        await page.waitForSelector(loopButtonSelector, {timeout: 5000});
+        const loopButton = await page.$(loopButtonSelector);
+
+        await loopButton.click();
+        console.log('Toggled loop.');
+    } catch (error) {
+        console.error('Error toggling loop', error);
+    }
+};
+
+const refreshPage = async () => {
+    try {
+        if (page) {
+            await page.reload({ waitUntil: 'networkidle0' });
+            console.log('Page refreshed successfully.');
+            await handleCookieBanner(page);
+        } else {
+            console.error('Page not initialized');
+        }
+    } catch (error) {
+        console.error('Error refreshing page:', error);
+    }
+};
+
+const getCurrentTrack = async () => {
+    try {
+        const trackInfo = await page.evaluate(() => {
+            const trackElement = document.querySelector('.playbackSoundBadge__titleLink');
+            const artistElement = document.querySelector('.playbackSoundBadge__lightLink');
+            const coverElement = document.querySelector('.playbackSoundBadge__avatarImage');
+            const playButton = document.querySelector('button.playControl');
+            
+            if (!trackElement) return null;
+
+            let name = trackElement.textContent.trim();
+            let artist = artistElement ? artistElement.textContent.trim() : '';
+            if (!artist || artist === name) {
+                artist = 'Unknown Artist';
+            }
+
+            return {
+                name,
+                artist,
+                coverUrl: coverElement ? coverElement.src : null,
+                isPlaying: playButton ? playButton.classList.contains('playing') : false
+            };
+        });
+
+        return trackInfo;
+    } catch (error) {
+        console.error('Error getting current track:', error);
+        return null;
+    }
+};
+
 module.exports = {
     initSoundCloud,
     togglePlayback,
     skipTrack,
     previousTrack,
-    toggleShuffle
+    toggleShuffle,
+    toggleLoop,
+    refreshPage,
+    getCurrentTrack
 };

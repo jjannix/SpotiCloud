@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Now Playing - SpotiCloud</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', 'Poppins', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .app-header {
+            position: absolute;
+            top: 32px;
+            left: 40px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #fff;
+            font-family: 'Poppins', 'Inter', Arial, sans-serif;
+        }
+        .main-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        .cover-art {
+            width: 480px;
+            height: 480px;
+            background: #d6d6d6;
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            color: #222;
+            font-weight: 500;
+            margin-right: 64px;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+            object-fit: cover;
+        }
+        .track-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .track-title {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 0.04em;
+        }
+        .track-artist {
+            font-size: 2rem;
+            color: #bdbdbd;
+            font-weight: 400;
+            margin-bottom: 48px;
+            letter-spacing: 0.03em;
+        }
+        .playing-badge {
+            position: absolute;
+            bottom: 48px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            font-size: 2rem;
+            font-family: 'Inter', 'Poppins', Arial, sans-serif;
+        }
+        .playing-badge .label {
+            background: #555;
+            color: #fff;
+            border-radius: 32px 0 0 32px;
+            padding: 0.3em 0.9em 0.3em 1.2em;
+            font-weight: 500;
+        }
+        .playing-badge .service {
+            background: #ff5500;
+            color: #fff;
+            border-radius: 0 32px 32px 0;
+            padding: 0.3em 1.2em 0.3em 0.9em;
+            font-weight: 700;
+            margin-left: -8px;
+        }
+        @media (max-width: 1100px) {
+            .main-flex { flex-direction: column; justify-content: flex-start; }
+            .cover-art { margin: 32px 0 32px 0; }
+        }
+        @media (max-width: 700px) {
+            .main-flex { flex-direction: column; }
+            .cover-art { width: 90vw; height: 90vw; max-width: 340px; max-height: 340px; }
+            .track-title { font-size: 2.1rem; }
+            .track-artist { font-size: 1.2rem; }
+            .playing-badge { font-size: 1.1rem; right: 16px; bottom: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">SpotiCloud</div>
+    <div class="main-flex">
+        <div id="cover" class="cover-art">Cover</div>
+        <div class="track-meta">
+            <div id="title" class="track-title">Song Title</div>
+            <div id="artist" class="track-artist">Artist</div>
+        </div>
+    </div>
+    <div class="playing-badge">
+        <span class="label">playing on</span><span class="service" id="service">SoundCloud</span>
+    </div>
+    <script>
+        // Use a static image for SoundCloud
+        const SOUNDCLOUD_COVER = 'soundcloud-default.png';
+        const DEFAULT_COVER = 'default-cover.png';
+
+        function setTrackUI(track, service) {
+            // Cover
+            let coverUrl = service === 'SoundCloud' ? SOUNDCLOUD_COVER : (track.coverUrl || DEFAULT_COVER);
+            const coverDiv = document.getElementById('cover');
+            if (coverDiv.tagName === 'IMG') {
+                coverDiv.src = coverUrl;
+            } else {
+                // Replace div with img for real cover
+                const img = document.createElement('img');
+                img.className = 'cover-art';
+                img.src = coverUrl;
+                img.alt = 'Cover Art';
+                img.onerror = () => { img.src = DEFAULT_COVER; };
+                coverDiv.replaceWith(img);
+            }
+            // Title & Artist
+            document.getElementById('title').textContent = track.name || 'Song Title';
+            document.getElementById('artist').textContent = track.artist || 'Artist';
+            // Service badge
+            document.getElementById('service').textContent = service;
+            document.getElementById('service').style.background = service === 'SoundCloud' ? '#ff5500' : '#1DB954';
+        }
+
+        // Only update every 10s to avoid API spam
+        async function updateTrackInfo() {
+            try {
+                const [spotifyResponse, soundcloudResponse] = await Promise.all([
+                    fetch('/spotify/current-track'),
+                    fetch('/soundcloud/current-track')
+                ]);
+                const spotifyTrack = await spotifyResponse.json();
+                const soundcloudTrack = await soundcloudResponse.json();
+                let currentTrack = null;
+                let currentService = null;
+                if (spotifyTrack && spotifyTrack.isPlaying) {
+                    currentTrack = spotifyTrack;
+                    currentService = 'Spotify';
+                } else if (soundcloudTrack && soundcloudTrack.isPlaying) {
+                    currentTrack = soundcloudTrack;
+                    currentService = 'SoundCloud';
+                } else if (spotifyTrack) {
+                    currentTrack = spotifyTrack;
+                    currentService = 'Spotify';
+                } else if (soundcloudTrack) {
+                    currentTrack = soundcloudTrack;
+                    currentService = 'SoundCloud';
+                }
+                if (currentTrack && currentService) {
+                    setTrackUI(currentTrack, currentService);
+                }
+            } catch (e) {
+                // fallback UI
+            }
+        }
+        updateTrackInfo();
+        setInterval(updateTrackInfo, 10000);
+    </script>
+</body>
+</html> 

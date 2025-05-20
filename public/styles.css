@@ -429,3 +429,39 @@ footer p::after {
     0% { left: -100%; }
     100% { left: 100%; }
 }
+
+.refresh-button {
+    background: #4CAF50 !important;
+    color: white !important;
+    transition: transform 0.3s ease;
+}
+
+.refresh-button:hover {
+    transform: rotate(180deg) scale(1.02) !important;
+}
+
+.refresh-button.button-pulse {
+    animation: refreshPulse 0.3s ease-in-out;
+}
+
+@keyframes refreshPulse {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.now-playing-link {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(45deg, #1DB954, #FF5500);
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.now-playing-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
